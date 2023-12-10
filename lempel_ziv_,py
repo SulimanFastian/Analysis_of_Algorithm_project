@@ -1,0 +1,57 @@
+import os
+
+class LempelZivCompression:
+    def __init__(self, filename):
+        self.filename = filename
+        self.dictionary = {}
+        self.window_size = 12  # Adjust the window size as needed
+        self.buffer_size = 4   # Adjust the buffer size as needed
+
+    def compress(self):
+        with open(self.filename, 'rb') as file:
+            data = file.read()
+
+        compressed_data = bytearray()
+        buffer = bytearray()
+        position = 0
+
+        while position < len(data):
+            match_found = False
+            match_length = 0
+            match_position = 0
+
+            for i in range(1, min(self.buffer_size, len(buffer)) + 1):
+                current_buffer = buffer[-i:]
+                occurrences = [pos for pos in range(len(buffer) - 1, -1, -1) if buffer[pos:pos + i] == current_buffer]
+                if occurrences:
+                    match_found = True
+                    match_length = i
+                    match_position = occurrences[-1]
+
+            if match_found:
+                offset = position - match_position - 1
+                # Ensure offset is within the valid byte range
+                offset_byte = offset % 256
+                compressed_data.append(match_length)
+                compressed_data.append(offset_byte)
+                buffer.extend(data[position:position + match_length + 1])
+            else:
+                compressed_data.append(0)
+                compressed_data.append(data[position])
+                buffer.extend(data[position:position + 1])
+
+            buffer = buffer[-self.window_size:]
+
+            position += match_length + 1
+
+        # Write compressed data to binary file
+        output_filename = os.path.splitext(self.filename)[0] + "_compressed_lz77.bin"
+        with open(output_filename, 'wb') as output_file:
+            output_file.write(compressed_data)
+
+# Usage
+file_names = ["lempel_ziv_data/low2.txt"]
+
+for file_name in file_names:
+    lz77 = LempelZivCompression(file_name)
+    lz77.compress()

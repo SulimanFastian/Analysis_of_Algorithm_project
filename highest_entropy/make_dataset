@@ -1,0 +1,12 @@
+import random
+import string
+
+# Generate a text file with 100% Shannon entropy (uniformly random characters)
+characters = string.ascii_letters + string.digits + string.punctuation + string.whitespace
+file_content = ''.join(random.choice(characters) for _ in range(100000))  # Adjust the length as needed
+
+file_path = '100000.txt'
+with open(file_path, 'w') as file:
+    file.write(file_content)
+
+print(f"File '{file_path}' created with 100% Shannon entropy.")
